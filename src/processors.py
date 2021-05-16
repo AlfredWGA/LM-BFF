@@ -17,7 +17,7 @@ from transformers.data.processors.glue import *
 from transformers.data.metrics import glue_compute_metrics
 import dataclasses
 from dataclasses import dataclass, asdict
-from typing import List, Optional, Union
+from typing import List, Optional, Text, Union
 from sentence_transformers import SentenceTransformer, util
 from copy import deepcopy
 import pandas as pd
@@ -493,6 +493,7 @@ class TextClassificationProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
+        # TODO: 
         if self.task_name == "mr":
             return list(range(2))
         elif self.task_name == "sst-5":
@@ -505,11 +506,14 @@ class TextClassificationProcessor(DataProcessor):
             return list(range(2))
         elif self.task_name == "mpqa":
             return list(range(2))
+        elif self.task_name == "eprstmt":
+            return ['Negative', 'Positive']
         else:
             raise Exception("task_name not supported.")
         
     def _create_examples(self, lines, set_type):
         """Creates examples for the training, dev and test sets."""
+        # TODO: 
         examples = []
         for (i, line) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
@@ -526,6 +530,8 @@ class TextClassificationProcessor(DataProcessor):
                 examples.append(InputExample(guid=guid, text_a=text, short_text=line[1], label=line[0])) 
             elif self.task_name in ['mr', 'sst-5', 'subj', 'trec', 'cr', 'mpqa']:
                 examples.append(InputExample(guid=guid, text_a=line[1], label=line[0]))
+            elif self.task_name in ['eprstmt']:
+                examples.append(InputExample(guid=guid, text_a=line[1], label=line[2]))
             else:
                 raise Exception("Task_name not supported.")
 
@@ -535,6 +541,7 @@ def text_classification_metrics(task_name, preds, labels):
     return {"acc": (preds == labels).mean()}
 
 # Add your task to the following mappings
+# TODO: 添加 task mapping
 
 processors_mapping = {
     "cola": ColaProcessor(),
@@ -553,7 +560,8 @@ processors_mapping = {
     "subj": TextClassificationProcessor("subj"),
     "trec": TextClassificationProcessor("trec"),
     "cr": TextClassificationProcessor("cr"),
-    "mpqa": TextClassificationProcessor("mpqa")
+    "mpqa": TextClassificationProcessor("mpqa"),
+    "eprstmt": TextClassificationProcessor("eprstmt")
 }
 
 num_labels_mapping = {
@@ -572,7 +580,8 @@ num_labels_mapping = {
     "subj": 2,
     "trec": 6,
     "cr": 2,
-    "mpqa": 2
+    "mpqa": 2,
+    "eprstmt": 2
 }
 
 output_modes_mapping = {
@@ -592,7 +601,8 @@ output_modes_mapping = {
     "subj": "classification",
     "trec": "classification",
     "cr": "classification",
-    "mpqa": "classification"
+    "mpqa": "classification",
+    "eprstmt": "classification"
 }
 
 # Return a function that takes (task_name, preds, labels) as inputs
@@ -614,6 +624,7 @@ compute_metrics_mapping = {
     "trec": text_classification_metrics,
     "cr": text_classification_metrics,
     "mpqa": text_classification_metrics,
+    "eprstmt": text_classification_metrics
 }
 
 # For regression task only: median

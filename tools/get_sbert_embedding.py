@@ -12,6 +12,10 @@ def get_sentence(task, line):
             return ''
         else:
             return line[1]
+    # TODO: 添加 FewCLUE tasks
+    elif task in ["eprstmt"]:
+        if task == "eprstmt":
+            return line[1]
     else:
         # GLUE tasks
         line = line.strip().split('\t')
@@ -44,6 +48,8 @@ def split_header(task, lines):
         return [], lines
     elif task in ["MNLI", "MRPC", "QNLI", "QQP", "RTE", "SNLI", "SST-2", "STS-B", "WNLI"]:
         return lines[0:1], lines[1:]
+    elif task in ["eprstmt"]:  # TODO: 添加 FewCLUE 数据集
+        return [], lines
     else:
         raise ValueError("Unknown GLUE task.")
 
@@ -59,6 +65,9 @@ def load_datasets(data_dir, task, do_test=False):
             splits.append('test')
     for split in splits:
         if task in ['mr', 'sst-5', 'subj', 'trec', 'cr', 'mpqa']:
+            filename = os.path.join(data_dir, f"{split}.csv")
+            dataset[split] = pd.read_csv(filename, header=None).values.tolist()
+        elif task in ["eprstmt"]:   # TODO: 
             filename = os.path.join(data_dir, f"{split}.csv")
             dataset[split] = pd.read_csv(filename, header=None).values.tolist()
         else:
@@ -81,7 +90,9 @@ def main():
 
     args = parser.parse_args()
 
-    model = SentenceTransformer('{}-nli-stsb-mean-tokens'.format(args.sbert_model))
+    # TODO: 更改模型以适应中文任务
+    # model = SentenceTransformer('{}-nli-stsb-mean-tokens'.format(args.sbert_model))
+    model = SentenceTransformer(args.sbert_model)
     model = model.cuda()
 
     for task in args.task:
@@ -99,6 +110,7 @@ def main():
                     emb = model.encode(sent)
                     embeddings.append(emb)
                 embeddings = np.stack(embeddings)
+                # np.save(os.path.join(folder, "{}_sbert-{}.npy".format(split, args.sbert_model)), embeddings)
                 np.save(os.path.join(folder, "{}_sbert-{}.npy".format(split, args.sbert_model)), embeddings)
 
 if __name__ == '__main__':

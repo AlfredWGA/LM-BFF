@@ -21,6 +21,8 @@ EVAL_STEP=100
 # For some tasks, we use longer length or double demo (when using demonstrations, double the maximum length).
 # For some tasks, we use smaller number of samples to save time (because of the large size of the test sets).
 # All those parameters are set arbitrarily by observing the data distributions.
+# If use --double_demo, then --max_seq_len specifies the max length of a single sentence; if not, it means the max length of
+# a sentence plus a demonstration
 TASK_EXTRA=""
 case $TASK in
     CoLA)
@@ -130,10 +132,10 @@ python run.py \
   --output_dir result/$TASK-$TYPE-$K-$SEED-$MODEL-$TRIAL_IDTF \
   --seed $SEED \
   --tag $TAG \
-  --template $TEMPLATE \
   --mapping $MAPPING \
   $TASK_EXTRA \
   $1 
+#   --template $TEMPLATE \
 
 # Delete the checkpoint 
 # Since we need to run multiple trials, saving all the checkpoints takes 

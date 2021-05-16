@@ -7,6 +7,9 @@ import pandas as pd
 from pandas import DataFrame
 
 def get_label(task, line):
+    """
+    对于每个 task，给定一行样本，拿到该样本的 label
+    """
     if task in ["MNLI", "MRPC", "QNLI", "QQP", "RTE", "SNLI", "SST-2", "STS-B", "WNLI", "CoLA"]:
         # GLUE style
         line = line.strip().split('\t')
@@ -32,12 +35,19 @@ def get_label(task, line):
             return line[-1]
         else:
             raise NotImplementedError
+    # TODO: 添加返回 label 的语句
+    elif task in ["eprstmt"]:
+        if task == "eprstmt":
+            return line[-1]
     else:
         return line[0]
 
 def load_datasets(data_dir, tasks):
+    """
+    # 读取每个 task 的数据集
+    """
     datasets = {}
-    for task in tasks:
+    for task in tasks:  
         if task in ["MNLI", "MRPC", "QNLI", "QQP", "RTE", "SNLI", "SST-2", "STS-B", "WNLI", "CoLA"]:
             # GLUE style (tsv)
             dataset = {}
@@ -46,13 +56,14 @@ def load_datasets(data_dir, tasks):
                 splits = ["train", "dev_matched", "dev_mismatched"]
             else:
                 splits = ["train", "dev"]
-            for split in splits:
+            for split in splits:    # 分别读取训练集、验证集
                 filename = os.path.join(dirname, f"{split}.tsv")
                 with open(filename, "r") as f:
                     lines = f.readlines()
                 dataset[split] = lines
             datasets[task] = dataset
-        else:
+        # 不在 list 当中的，以 csv 格式读取
+        else:   
             # Other datasets (csv)
             dataset = {}
             dirname = os.path.join(data_dir, task)
@@ -66,11 +77,15 @@ def load_datasets(data_dir, tasks):
 def split_header(task, lines):
     """
     Returns if the task file has a header or not. Only for GLUE tasks.
+    返回数据集文件的 header 和样本
+    对于 FewCLUE 可以和 CoLA 一致
     """
     if task in ["CoLA"]:
         return [], lines
     elif task in ["MNLI", "MRPC", "QNLI", "QQP", "RTE", "SNLI", "SST-2", "STS-B", "WNLI"]:
         return lines[0:1], lines[1:]
+    elif task in ["eprstmt"]:  # TODO: 添加 FewCLUE 数据集
+        return [], lines
     else:
         raise ValueError("Unknown GLUE task.")
 

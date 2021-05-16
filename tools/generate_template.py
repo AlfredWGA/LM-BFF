@@ -250,6 +250,12 @@ def load_dataset(task, data_dir):
                 dataset.append({'label': line[-1], 'text': [line[1], line[2]]})
             else:
                 raise NotImplementedError
+    # TODO: 添加自定义任务的格式
+    elif task in ["eprstmt"]:
+        lines = pd.read_csv(os.path.join(data_dir, 'train.csv')).values.tolist()
+        dataset = []
+        for line in lines:
+            dataset.append({'label': line[-1], 'text': [line[1]]})
     else:
         lines = pd.read_csv(os.path.join(data_dir, 'train.csv')).values.tolist()
         dataset = []
@@ -268,6 +274,7 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
     print()
     
     # Manual label word mappings
+    # TODO: 在此添加 FewCLUE 数据集的 label word mappings
     map_of_mapping = {
         'SST-2': {'0':'terrible','1':'great'},
         'sst-5': {0:'terrible',1:'bad',2:'okay',3:'good',4:'great'},
@@ -283,7 +290,8 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
         'MNLI': {'contradiction':'No','entailment':'Yes','neutral':'Maybe'},
         'SNLI': {'contradiction':'No','entailment':'Yes','neutral':'Maybe'},
         'QNLI': {'not_entailment':'No','entailment':'Yes'},
-        'RTE': {'not_entailment':'No','entailment':'Yes'}
+        'RTE': {'not_entailment':'No','entailment':'Yes'},
+        "eprstmt": {"Negative": "差", "Positive": "好"}
     }
 
     mapping = map_of_mapping[task_name]
@@ -294,7 +302,9 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
     os.makedirs(os.path.join(output_dir, task_name), exist_ok=True)
     f = open(os.path.join(output_dir, task_name, "{}-{}.txt".format(k, seed)), 'w')
 
-    if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa']:
+    # TODO: 添加相应的 tasks
+    # if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa']:
+    if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa', 'eprstmt']:
         # Single sentence tasks
         # We take two kinds of templates: put [MASK] at the beginning or the end
         template = "*cls**sentu_0**<extra_id_0>**label**<extra_id_1>**sep+*"

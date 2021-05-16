@@ -123,6 +123,11 @@ def main():
             args.key = 'mpqa_dev_eval_acc'
             args.test_key = 'mpqa_test_eval_acc'
             print_name = condition['task_name']
+        # TODO: 
+        elif condition['task_name'] == 'eprstmt':
+            args.key = 'eprstmt_dev_eval_acc'
+            args.test_key = 'eprstmt_test_eval_acc'
+            print_name = condition['task_name']
         else:
             raise NotImplementedError
 
