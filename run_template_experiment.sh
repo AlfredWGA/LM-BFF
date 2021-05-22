@@ -29,11 +29,13 @@ do
         # bash run_experiment.sh "--template_path my_auto_template/SST-2/16-$seed.txt --template_id $template_id --no_predict"
     
         SEED=$seed
-        TASK=eprstmt
+        # TASK=eprstmt
+        TASK=iflytek
         TYPE=prompt 
         TAG=exp-template
 
-        MODEL=hfl/chinese-roberta-wwm-ext
+        # MODEL=hfl/chinese-roberta-wwm-ext
+        MODEL=google/mt5-base
         BS=8
         LR=1e-5
 
@@ -41,6 +43,7 @@ do
         DATA_DIR=data/k-shot/$TASK/$K-$SEED
 
         python run.py \
+            --seed $SEED \
             --task_name $TASK \
             --data_dir data/k-shot/$TASK/16-$SEED \
             --overwrite_output_dir \
@@ -54,17 +57,19 @@ do
             --learning_rate $LR \
             --max_steps 300 \
             --eval_steps 100 \
-            --max_seq_len 270 \
-            --first_sent_limit 256 \
+            --max_seq_len 512 \
+            --first_sent_limit 510 \
             --per_device_train_batch_size 4 \
             --per_device_eval_batch_size 16 \
             --learning_rate 1e-5 \
             --output_dir result/$TASK-$TYPE-$K-$SEED-$MODEL-$TRIAL_IDTF \
             --template_path my_auto_template/$TASK/16-$seed.txt \
             --template_id $template_id \
-            --mapping "{'Negative':'差','Positive':'好'}" 
+            --tag $TAG \
+            --mapping "{8: '公共交通', 30: '情侣社交', 102: '摄影修图', 58: '高等教育', 42: '百科', 99: '银行', 47: '短视频', 72: '母婴', 46: '视频', 80: '买房', 82: '电子产品', 116: '经营', 38: '教辅', 21: '经营养成', 92: '支付', 1: '地图导航', 87: '美妆美业', 66: '酒店', 83: '问诊挂号', 73: '驾校', 41: '杂志', 51: 'K歌', 23: 'MOBA', 105: '二手', 61: '语言(非英语)', 67: '行程管理', 111: '购物咨询', 26: '即时通讯', 74: '违章', 96: '理财', 20: '棋牌中心', 103: '相机', 84: '养生保健', 53: '中小学', 65: '铁路', 19: '体育竞技', 52: '成人', 75: '汽车咨询', 10: '社区服务', 55: '公务员', 112: '笔记', 24: '辅助工具', 81: '装修家居', 101: '影像剪辑', 63: '综合预定', 62: '旅游资讯', 29: '婚恋社交', 2: '免费WIFI', 115: '女性', 85: '医疗服务', 100: '美颜', 108: '外卖', 43: '影视娱乐', 44: '求职', 17: '休闲益智', 106: '电商', 118: '其他', 13: '仙侠', 28: '论坛圈子', 77: '日常养车', 25: '约会社交', 71: '亲子儿童', 94: '股票', 37: '技术', 90: '体育咨讯', 54: '职考', 91: '运动健身', 11: '薅羊毛', 39: '问答交流', 27: '工作社交', 36: '小说', 49: '直播', 59: '成人教育', 5: '快递物流', 56: '英语', 93: '保险', 104: '绘画', 64: '民航', 86: '减肥瘦身', 97: '彩票', 109: '电影票务', 107: '团购', 45: '兼职', 60: '艺术', 70: '工具', 79: '租房', 48: '音乐', 95: '借贷', 110: '社区超市', 7: '家政', 32: '生活社交', 113: '办公', 76: '汽车交易', 78: '行车辅助', 16: '射击游戏', 15: '飞行空战', 98: '记账', 114: '日程管理', 40: '搞笑', 9: '政务', 0: '打车', 22: '策略', 18: '动作类', 117: '收款', 68: '民宿短租', 3: '租车', 57: '视频教育', 34: '新闻', 35: '漫画', 31: '社交工具', 89: '餐饮店', 6: '婚庆', 50: '电台', 4: '同城服务', 14: '卡牌', 88: '菜谱', 33: '微博博客', 69: '出国', 12: '魔幻'}"
+            # --mapping "{'Negative':'差','Positive':'好'}" 
     done
 done
 
 # Sort templates according to their score
-python tools/sort_template.py --condition "{'tag': 'exp-template', 'task_name': $TASK}" --template_dir my_auto_template
+python tools/sort_template.py --condition "{'tag': 'exp-template', 'task_name': '$TASK'}" --template_dir my_auto_template

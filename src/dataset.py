@@ -278,7 +278,6 @@ class FewShotDataset(torch.utils.data.Dataset):
         if args.prompt:
             assert args.mapping is not None
             self.label_to_word = eval(args.mapping)
-
             for key in self.label_to_word:
                 # For RoBERTa/BART/T5, tokenization also considers space, so we use space+word as label words.
                 if self.label_to_word[key][0] not in ['<', '[', '.', ',']:

@@ -1,6 +1,6 @@
 MODEL=$1
 K=16
-TASK=eprstmt
+# TASK=eprstmt
 # TODO: 添加 tasks
 
 # python tools/get_sbert_embedding.py --sbert_model $MODEL --task SST-2 sst-5 mr cr mpqa subj trec CoLA MRPC QQP STS-B MNLI SNLI QNLI RTE
@@ -17,13 +17,13 @@ TASK=eprstmt
 #     cp data/k-shot/MNLI/$K-42/test_mismatched_sbert-$MODEL.npy  data/k-shot/MNLI/$K-$seed/
 # done
 
-python tools/get_sbert_embedding.py --sbert_model $MODEL --task $TASK
-python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 42 --do_test --task $TASK
+python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --task eprstmt iflytek
+python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --do_test --task eprstmt iflytek
 
-for seed in 13 21 87 100
+for seed in 13
 do
-    for task in eprstmt
+    for task in eprstmt iflytek
     do
-        cp data/k-shot/$task/$K-42/test_sbert-$MODEL.npy  data/k-shot/$task/$K-$seed/
+        cp data/k-shot/$task/$K-13/test_sbert-$MODEL.npy  data/k-shot/$task/$K-$seed/
     done
 done

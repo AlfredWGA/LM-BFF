@@ -3,12 +3,12 @@ TASK=eprstmt
 
 MODEL=hfl/chinese-roberta-wwm-ext
 # MODEL=hfl/chinese-roberta-wwm-ext-large
-TYPE=prompt-demo
+TYPE=prompt
 
 K=16
 # 稍小的max len加快训练速度
-MAX_LEN=128
-FIRST_LIMIT=128
+MAX_LEN=270
+FIRST_LIMIT=256
 LR=1e-5
 
 MAX_STEP=1000
@@ -48,9 +48,9 @@ python run.py \
   --mapping $MAPPING \
   --template_path $TEMPLATE_PATH \
   --template_id 0 \
-  --demo_filter \
   --max_seq_length $MAX_LEN \
   --first_sent_limit $FIRST_LIMIT \
-  --double_demo \
-  --demo_filter_model sbert-$FILTER_MODEL
+  # --double_demo \
+  # --demo_filter \
+  # --demo_filter_model sbert-$FILTER_MODEL
 #   --logging_steps $EVAL_STEP \

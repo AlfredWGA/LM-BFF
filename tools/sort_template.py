@@ -128,6 +128,10 @@ def main():
             args.key = 'eprstmt_dev_eval_acc'
             args.test_key = 'eprstmt_test_eval_acc'
             print_name = condition['task_name']
+        elif condition['task_name'] == 'iflytek':
+            args.key = 'iflytek_dev_eval_acc'
+            args.test_key = 'iflytek_test_eval_acc'
+            print_name = condition['task_name']
         else:
             raise NotImplementedError
 
@@ -155,7 +159,7 @@ def main():
                 if item['template_id'] not in seed_result_template_id[seed]:
                     seed_result[seed].append(item)
                     seed_result_template_id[seed][item['template_id']] = 1
-
+    print(seed_result)
     for seed in seed_result:
         print("Seed %d has %d results" % (seed, len(seed_result[seed])))
 

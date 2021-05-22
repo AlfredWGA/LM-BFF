@@ -508,6 +508,8 @@ class TextClassificationProcessor(DataProcessor):
             return list(range(2))
         elif self.task_name == "eprstmt":
             return ['Negative', 'Positive']
+        elif self.task_name == "iflytek":
+            return list(range(119))
         else:
             raise Exception("task_name not supported.")
         
@@ -532,6 +534,8 @@ class TextClassificationProcessor(DataProcessor):
                 examples.append(InputExample(guid=guid, text_a=line[1], label=line[0]))
             elif self.task_name in ['eprstmt']:
                 examples.append(InputExample(guid=guid, text_a=line[1], label=line[2]))
+            elif self.task_name in ['iflytek']:
+                examples.append(InputExample(guid=guid, text_a=line[2], label=line[0]))
             else:
                 raise Exception("Task_name not supported.")
 
@@ -561,7 +565,8 @@ processors_mapping = {
     "trec": TextClassificationProcessor("trec"),
     "cr": TextClassificationProcessor("cr"),
     "mpqa": TextClassificationProcessor("mpqa"),
-    "eprstmt": TextClassificationProcessor("eprstmt")
+    "eprstmt": TextClassificationProcessor("eprstmt"),
+    "iflytek": TextClassificationProcessor("iflytek")
 }
 
 num_labels_mapping = {
@@ -581,7 +586,8 @@ num_labels_mapping = {
     "trec": 6,
     "cr": 2,
     "mpqa": 2,
-    "eprstmt": 2
+    "eprstmt": 2,
+    "iflytek": 119
 }
 
 output_modes_mapping = {
@@ -602,7 +608,8 @@ output_modes_mapping = {
     "trec": "classification",
     "cr": "classification",
     "mpqa": "classification",
-    "eprstmt": "classification"
+    "eprstmt": "classification",
+    "iflytek": "classification"
 }
 
 # Return a function that takes (task_name, preds, labels) as inputs
@@ -624,7 +631,8 @@ compute_metrics_mapping = {
     "trec": text_classification_metrics,
     "cr": text_classification_metrics,
     "mpqa": text_classification_metrics,
-    "eprstmt": text_classification_metrics
+    "eprstmt": text_classification_metrics,
+    "iflytek": text_classification_metrics
 }
 
 # For regression task only: median
