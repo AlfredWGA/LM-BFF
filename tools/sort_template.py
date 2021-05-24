@@ -7,9 +7,9 @@ import os
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--condition", type=str, help="A dictionary contains conditions that the experiment results need to fulfill (e.g., tag, task_name, few_shot_type)")
-    parser.add_argument('--template_dir', type=str, help='Template directory')
-
+    # condition 用来从 log 中筛选符合特定条件的实验结果
+    parser.add_argument("--condition", type=str, help="A dictionary contains conditions that the experiment results need to fulfill (e.g., tag, task_name, few_shot_type)", default="{'tag':'exp-template','task_name':'ocnli', 'output_dir': 'result/ocnli-prompt--13-hfl/chinese-roberta-wwm-ext-18303'}")
+    parser.add_argument('--template_dir', type=str, help='Template directory', default="my_auto_template")
     # These options should be kept as their default values
     parser.add_argument("--k", type=int, default=16)
     parser.add_argument("--log", type=str, default="log", help="Log path.")
@@ -131,6 +131,14 @@ def main():
         elif condition['task_name'] == 'iflytek':
             args.key = 'iflytek_dev_eval_acc'
             args.test_key = 'iflytek_test_eval_acc'
+            print_name = condition['task_name']
+        elif condition['task_name'] == 'tnews':
+            args.key = 'tnews_dev_eval_acc'
+            args.test_key = 'tnews_test_eval_acc'
+            print_name = condition['task_name']
+        elif condition['task_name'] == 'ocnli':
+            args.key = 'ocnli_dev_eval_acc'
+            args.test_key = 'ocnli_test_eval_acc'
             print_name = condition['task_name']
         else:
             raise NotImplementedError

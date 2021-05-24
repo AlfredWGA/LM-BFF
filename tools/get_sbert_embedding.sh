@@ -17,12 +17,12 @@ K=16
 #     cp data/k-shot/MNLI/$K-42/test_mismatched_sbert-$MODEL.npy  data/k-shot/MNLI/$K-$seed/
 # done
 
-python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --task eprstmt iflytek
-python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --do_test --task eprstmt iflytek
+python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --task eprstmt iflytek tnews ocnli
+python tools/get_sbert_embedding.py --sbert_model $MODEL --seed 13 --do_test --task eprstmt iflytek tnews ocnli
 
 for seed in 13
 do
-    for task in eprstmt iflytek
+    for task in eprstmt iflytek tnews ocnli
     do
         cp data/k-shot/$task/$K-13/test_sbert-$MODEL.npy  data/k-shot/$task/$K-$seed/
     done

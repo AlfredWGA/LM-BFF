@@ -462,6 +462,48 @@ class WnliProcessor(DataProcessor):
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
+
+# TODO: NLI, MRC 数据集在此添加
+class OcnliProcessor(DataProcessor):
+    """Processor for the OCNLI data set."""
+
+    # def get_example_from_tensor_dict(self, tensor_dict):
+        # """See base class."""
+        # return InputExample(
+            # tensor_dict["idx"].numpy(),
+            # tensor_dict["question"].numpy().decode("utf-8"),
+            # tensor_dict["sentence"].numpy().decode("utf-8"),
+            # str(tensor_dict["label"].numpy()),
+        # )
+
+    def get_train_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(pd.read_csv(os.path.join(data_dir, "train.csv"), header=None).values.tolist(), "train")
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(pd.read_csv(os.path.join(data_dir, "dev.csv"), header=None).values.tolist(), "dev")
+
+    def get_test_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(pd.read_csv(os.path.join(data_dir, "test.csv"), header=None).values.tolist(), "test")
+
+    def get_labels(self):
+        """See base class."""
+        return ["contradiction", "neutral", "entailment"]
+
+    def _create_examples(self, lines, set_type):
+        """Creates examples for the training, dev and test sets."""
+        examples = []
+        for (i, line) in enumerate(lines):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line[1]
+            text_b = line[2]
+            label = line[3]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+        return examples
+        
+
 class TextClassificationProcessor(DataProcessor):
     """
     Data processor for text classification datasets (mr, sst-5, subj, trec, cr, mpqa).
@@ -493,7 +535,7 @@ class TextClassificationProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        # TODO: 
+        # TODO: 文本分类数据集在此添加，下同
         if self.task_name == "mr":
             return list(range(2))
         elif self.task_name == "sst-5":
@@ -510,6 +552,8 @@ class TextClassificationProcessor(DataProcessor):
             return ['Negative', 'Positive']
         elif self.task_name == "iflytek":
             return list(range(119))
+        elif self.task_name == 'tnews':
+            return [100, 101, 102, 103, 104, 106, 107, 108, 109, 110, 112, 113, 114, 115, 116]
         else:
             raise Exception("task_name not supported.")
         
@@ -535,6 +579,8 @@ class TextClassificationProcessor(DataProcessor):
             elif self.task_name in ['eprstmt']:
                 examples.append(InputExample(guid=guid, text_a=line[1], label=line[2]))
             elif self.task_name in ['iflytek']:
+                examples.append(InputExample(guid=guid, text_a=line[2], label=line[0]))
+            elif self.task_name in ['tnews']:
                 examples.append(InputExample(guid=guid, text_a=line[2], label=line[0]))
             else:
                 raise Exception("Task_name not supported.")
@@ -566,7 +612,9 @@ processors_mapping = {
     "cr": TextClassificationProcessor("cr"),
     "mpqa": TextClassificationProcessor("mpqa"),
     "eprstmt": TextClassificationProcessor("eprstmt"),
-    "iflytek": TextClassificationProcessor("iflytek")
+    "iflytek": TextClassificationProcessor("iflytek"),
+    "tnews": TextClassificationProcessor("tnews"),
+    "ocnli": OcnliProcessor(),
 }
 
 num_labels_mapping = {
@@ -587,7 +635,9 @@ num_labels_mapping = {
     "cr": 2,
     "mpqa": 2,
     "eprstmt": 2,
-    "iflytek": 119
+    "iflytek": 119,
+    "tnews": 15,
+    "ocnli": 3,
 }
 
 output_modes_mapping = {
@@ -609,7 +659,9 @@ output_modes_mapping = {
     "cr": "classification",
     "mpqa": "classification",
     "eprstmt": "classification",
-    "iflytek": "classification"
+    "iflytek": "classification",
+    "tnews": "classification",
+    "ocnli": "classification",
 }
 
 # Return a function that takes (task_name, preds, labels) as inputs
@@ -632,7 +684,9 @@ compute_metrics_mapping = {
     "cr": text_classification_metrics,
     "mpqa": text_classification_metrics,
     "eprstmt": text_classification_metrics,
-    "iflytek": text_classification_metrics
+    "iflytek": text_classification_metrics,
+    "tnews": text_classification_metrics,
+    "ocnli": text_classification_metrics,
 }
 
 # For regression task only: median

@@ -354,7 +354,8 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
             f.write(text + '\n')
         print("####### generated templates #######\n")
 
-    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE']:
+    # TODO: 在此添加 MRC, NLI 任务，转成 Chinese T5 的格式
+    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE', 'ocnli']:
         # Sentence pair tasks
         # We always put [MASK] between the two sentences
         template = "*cls**sent-_0**<extra_id_0>**label**<extra_id_1>**+sentl_1**sep+*"

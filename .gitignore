@@ -142,7 +142,7 @@ cython_debug/
 .vscode
 data
 !data/k-shot/checksum
-log*
+# log*
 runs
 result
 wandb
