@@ -8,6 +8,7 @@ MODEL=hfl/chinese-roberta-wwm-ext
 TYPE=prompt
 
 K=16
+# 在此设置 max len
 # 稍小的max len加快训练速度
 TASK_EXTRA="--max_seq_len 140 --first_sent_limit 64 --other_sent_limit 64"
 # MAX_LEN=256
@@ -55,7 +56,7 @@ python run.py \
   --template_path $TEMPLATE_PATH \
   --template_id 0 \
   --mapping $MAPPING \
-  $TASK_EXTRA \
+  $TASK_EXTRA
   # --max_seq_length $MAX_LEN \
   # --first_sent_limit $FIRST_LIMIT \
   # --double_demo \
