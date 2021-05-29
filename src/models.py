@@ -71,10 +71,19 @@ class BertForPromptFinetuning(BertPreTrainedModel):
         )
 
         # Get <mask> token representation
+        # sequence_output.shape == [batch_size, length, hidden_dim]
         sequence_output, pooled_output = outputs[:2]
-        sequence_mask_output = sequence_output[torch.arange(sequence_output.size(0)), mask_pos]
+
+        # If mask_pos.shape == [batch_size,]
+        # sequence_mask_output = sequence_output[torch.arange(sequence_output.size(0)), mask_pos]
+
+        # TODO: 在这处理多个 Mask Token
+        # If mask_pos.shape == [batch_size, label_length], e.g. iflytek [batch_size, 2]
+        sequence_mask_output = torch.stack([sequence_output[i, index, :] for i, index in enumerate(mask_pos)])
+        # sequence_mask_output.shape == [batch_size, 2, hidden_dim]
 
         # Logits over vocabulary tokens
+        # sequence_mask_output.shape == [batch_size, 2, vocab_size]
         prediction_mask_scores = self.cls(sequence_mask_output)
 
         # Exit early and only return mask logits.
@@ -84,10 +93,18 @@ class BertForPromptFinetuning(BertPreTrainedModel):
             return prediction_mask_scores
 
         # Return logits for each label
-        logits = []
-        for label_id in range(len(self.label_word_list)):
-            logits.append(prediction_mask_scores[:, self.label_word_list[label_id]].unsqueeze(-1))
-        logits = torch.cat(logits, -1)
+        # logits = []
+        # for label_id in range(len(self.label_word_list)):
+        #     logits.append(prediction_mask_scores[:, self.label_word_list[label_id]].unsqueeze(-1))
+        # logits = torch.cat(logits, -1)
+        # TODO: 获得 mask 位置每个 label word 的输出值
+        logits = prediction_mask_scores[:, 0, self.label_word_list[:, 0]] * prediction_mask_scores[:, 1, self.label_word_list[:, 1]]
+        # logits = []
+        # for i, label_ids in enumerate(self.label_word_list):
+            # # label_id.shape == [2,]
+            # score = prediction_mask_scores[:, 0, label_ids[0]] * prediction_mask_scores[:, 1, label_ids[1]]
+            # logits.append(score.unsqueeze(-1))
+        # logits = torch.cat(logits, -1)
 
         # Regression task
         if self.config.num_labels == 1:
@@ -97,11 +114,12 @@ class BertForPromptFinetuning(BertPreTrainedModel):
         loss = None
         if labels is not None:
             if self.num_labels == 1:
-                # Regression task
+                # Regression task 回归任务
                 loss_fct = nn.KLDivLoss(log_target=True)
                 labels = torch.stack([1 - (labels.view(-1) - self.lb) / (self.ub - self.lb), (labels.view(-1) - self.lb) / (self.ub - self.lb)], -1)
                 loss = loss_fct(logits.view(-1, 2), labels)
             else:
+                # 分类任务
                 loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
 

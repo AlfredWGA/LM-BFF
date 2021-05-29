@@ -240,9 +240,13 @@ def tokenize_multipart_input(
 
     # Find mask token
     if prompt:
-        mask_pos = [input_ids.index(tokenizer.mask_token_id)]
-        # Make sure that the masked position is inside the max_length
-        assert mask_pos[0] < max_length
+        # TODO: 这里可以对多个 label token 进行 mask?
+        # mask_pos = [input_ids.index(tokenizer.mask_token_id)]
+        # # Make sure that the masked position is inside the max_length
+        # assert mask_pos[0] < max_length
+
+        mask_pos = [i for i, x in enumerate(input_ids) if x == tokenizer.mask_token_id]
+        assert mask_pos[-1] < max_length
 
     result = {'input_ids': input_ids, 'attention_mask': attention_mask}
     if 'BERT' in type(tokenizer).__name__:
@@ -280,13 +284,16 @@ class FewShotDataset(torch.utils.data.Dataset):
             self.label_to_word = eval(args.mapping)
             for key in self.label_to_word:
                 # For RoBERTa/BART/T5, tokenization also considers space, so we use space+word as label words.
-                if self.label_to_word[key][0] not in ['<', '[', '.', ',']:
-                    # Make sure space+word is in the vocabulary
-                    assert len(tokenizer.tokenize(' ' + self.label_to_word[key])) == 1
-                    self.label_to_word[key] = tokenizer._convert_token_to_id(tokenizer.tokenize(' ' + self.label_to_word[key])[0])
-                else:
-                    self.label_to_word[key] = tokenizer._convert_token_to_id(self.label_to_word[key])
-                logger.info("Label {} to word {} ({})".format(key, tokenizer._convert_id_to_token(self.label_to_word[key]), self.label_to_word[key]))
+                # if self.label_to_word[key][0] not in ['<', '[', '.', ',']:
+                #     # Make sure space+word is in the vocabulary
+                #     assert len(tokenizer.tokenize(' ' + self.label_to_word[key])) == 1
+                #     self.label_to_word[key] = tokenizer._convert_token_to_id(tokenizer.tokenize(' ' + self.label_to_word[key])[0])
+                # else:
+                #     self.label_to_word[key] = tokenizer._convert_token_to_id(self.label_to_word[key])
+                # logger.info("Label {} to word {} ({})".format(key, tokenizer._convert_id_to_token(self.label_to_word[key]), self.label_to_word[key]))
+                # TODO: 默认所有 label word 都有多个 token
+                self.label_to_word[key] = tokenizer.convert_tokens_to_ids(list(self.label_to_word[key]))
+                logger.info("Label {} to word {} ({})".format(key, tokenizer.convert_ids_to_tokens(self.label_to_word[key]), self.label_to_word[key]))
             
             if len(self.label_list) > 1:
                 self.label_word_list = [self.label_to_word[label] for label in self.label_list]

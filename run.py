@@ -95,6 +95,7 @@ class DynamicDataTrainingArguments(DataTrainingArguments):
 
     mapping: str = field(
         default=None,
+        # default="{100:'故事',101:'文化',102:'娱乐',103:'体育',104:'财经',106:'房产',107:'汽车',108:'教育',109:'科技',110:'军事',112:'旅游',113:'国际',114:'股市',115:'农业',116:'游戏'}",
         metadata={"help": "Label word mapping"}
     )
 
@@ -483,6 +484,8 @@ def main():
 
     # Pass dataset and argument information to the model
     if data_args.prompt:
+        print("-" * 100)
+        print(train_dataset.label_word_list)
         model.label_word_list = torch.tensor(train_dataset.label_word_list).long().cuda()
     if output_modes_mapping[data_args.task_name] == 'regression':
         # lower / upper bounds

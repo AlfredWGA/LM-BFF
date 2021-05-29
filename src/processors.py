@@ -599,7 +599,7 @@ class TextClassificationProcessor(DataProcessor):
         
     def _create_examples(self, lines, set_type):
         """Creates examples for the training, dev and test sets."""
-        # TODO: 
+        # TODO: example 添加语句
         examples = []
         for (i, line) in enumerate(lines):
             guid = "%s-%s" % (set_type, i)
