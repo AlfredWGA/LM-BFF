@@ -1,7 +1,8 @@
 SEED=13
-# TASK=eprstmt
+TASK=bustm
 # TASK=tnews
-TASK=ocnli
+# TASK=eprstmt
+# TASK=ocnli
 
 MODEL=hfl/chinese-roberta-wwm-ext
 # MODEL=hfl/chinese-roberta-wwm-ext-large
@@ -11,8 +12,7 @@ K=16
 # 在此设置 max len
 # 稍小的max len加快训练速度
 TASK_EXTRA="--max_seq_len 140 --first_sent_limit 64 --other_sent_limit 64"
-# MAX_LEN=256
-# FIRST_LIMIT=256
+# TASK_EXTRA="--max_seq_len 270 --first_sent_limit 256"
 
 LR=1e-5
 
@@ -24,8 +24,9 @@ EVAL_STEP=100
 # TEMPLATE=*cls**sent_0*_。_*mask*点!*sep+*
 # MAPPING="{'Negative':'差','Positive':'好'}"
 # 字符串表示的dict没有任何空格！
+MAPPING="{0:'否',1:'是'}"
 # MAPPING="{100:'事',101:'文',102:'娱',103:'体',104:'财',106:'房',107:'车',108:'教',109:'科',110:'军',112:'旅',113:'国',114:'股',115:'农',116:'游'}"
-MAPPING="{'contradiction':'不','neutral':'或','entailment':'是'}"
+# MAPPING="{'contradiction':'不','neutral':'或','entailment':'是'}"
 TEMPLATE_PATH=my_auto_template/$TASK/$K-$SEED.sort.txt
 
 TRIAL_IDTF=$RANDOM

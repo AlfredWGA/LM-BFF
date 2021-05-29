@@ -13,7 +13,7 @@ def get_sentence(task, line):
         else:
             return line[1]
     # TODO: 添加 FewCLUE tasks
-    elif task in ["eprstmt", "iflytek", "tnews", "ocnli"]:
+    elif task in ["eprstmt", "iflytek", "tnews", "ocnli", "bustm"]:
         if task == "eprstmt":
             return line[1]
         elif task == "iflytek":
@@ -22,6 +22,9 @@ def get_sentence(task, line):
             return line[2]
         elif task == "ocnli":
             return line[1] + ' ' + line[2]
+        elif task == "bustm":
+            return line[1] + ' ' + line[2]
+
 
     else:
         # GLUE tasks
@@ -55,7 +58,7 @@ def split_header(task, lines):
         return [], lines
     elif task in ["MNLI", "MRPC", "QNLI", "QQP", "RTE", "SNLI", "SST-2", "STS-B", "WNLI"]:
         return lines[0:1], lines[1:]
-    elif task in ["eprstmt", "iflytek", "tnews", "ocnli"]:  # TODO: 添加 FewCLUE 数据集
+    elif task in ["eprstmt", "iflytek", "tnews", "ocnli", "bustm"]:  # TODO: 添加 FewCLUE 数据集
         return [], lines
     else:
         raise ValueError("Unknown GLUE task.")
@@ -74,7 +77,7 @@ def load_datasets(data_dir, task, do_test=False):
         if task in ['mr', 'sst-5', 'subj', 'trec', 'cr', 'mpqa']:
             filename = os.path.join(data_dir, f"{split}.csv")
             dataset[split] = pd.read_csv(filename, header=None).values.tolist()
-        elif task in ["eprstmt", "iflytek", "tnews", "ocnli"]:   # TODO: 
+        elif task in ["eprstmt", "iflytek", "tnews", "ocnli", "bustm"]:   # TODO: 
             filename = os.path.join(data_dir, f"{split}.csv")
             dataset[split] = pd.read_csv(filename, header=None).values.tolist()
         else:

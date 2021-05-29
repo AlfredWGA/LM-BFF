@@ -140,6 +140,10 @@ def main():
             args.key = 'ocnli_dev_eval_acc'
             args.test_key = 'ocnli_test_eval_acc'
             print_name = condition['task_name']
+        elif condition['task_name'] == 'bustm':
+            args.key = 'bustm_dev_eval_acc'
+            args.test_key = 'bustm_test_eval_acc'
+            print_name = condition['task_name']
         else:
             raise NotImplementedError
 

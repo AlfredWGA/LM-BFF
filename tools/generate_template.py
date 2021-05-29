@@ -274,6 +274,11 @@ def load_dataset(task, data_dir):
         dataset = []
         for line in lines:
             dataset.append({'label': line[3], 'text': [line[1], line[2]]})
+    elif task in ["bustm"]:
+        lines = pd.read_csv(os.path.join(data_dir, 'train.csv'), header=None).values.tolist()
+        dataset = []
+        for line in lines:
+            dataset.append({'label': line[3], 'text': [line[1], line[2]]})
     else:
         lines = pd.read_csv(os.path.join(data_dir, 'train.csv')).values.tolist()
         dataset = []
@@ -313,6 +318,7 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
         "iflytek": {8: '公共交通', 30: '情侣社交', 102: '摄影修图', 58: '高等教育', 42: '百科', 99: '银行', 47: '短视频', 72: '母婴', 46: '视频', 80: '买房', 82: '电子产品', 116: '经营', 38: '教辅', 21: '经营养成', 92: '支付', 1: '地图导航', 87: '美妆美业', 66: '酒店', 83: '问诊挂号', 73: '驾校', 41: '杂志', 51: 'K歌', 23: 'MOBA', 105: '二手', 61: '语言(非英语)', 67: '行程管理', 111: '购物咨询', 26: '即时通讯', 74: '违章', 96: '理财', 20: '棋牌中心', 103: '相机', 84: '养生保健', 53: '中小学', 65: '铁路', 19: '体育竞技', 52: '成人', 75: '汽车咨询', 10: '社区服务', 55: '公务员', 112: '笔记', 24: '辅助工具', 81: '装修家居', 101: '影像剪辑', 63: '综合预定', 62: '旅游资讯', 29: '婚恋社交', 2: '免费WIFI', 115: '女性', 85: '医疗服务', 100: '美颜', 108: '外卖', 43: '影视娱乐', 44: '求职', 17: '休闲益智', 106: '电商', 118: '其他', 13: '仙侠', 28: '论坛圈子', 77: '日常养车', 25: '约会社交', 71: '亲子儿童', 94: '股票', 37: '技术', 90: '体育咨讯', 54: '职考', 91: '运动健身', 11: '薅羊毛', 39: '问答交流', 27: '工作社交', 36: '小说', 49: '直播', 59: '成人教育', 5: '快递物流', 56: '英语', 93: '保险', 104: '绘画', 64: '民航', 86: '减肥瘦身', 97: '彩票', 109: '电影票务', 107: '团购', 45: '兼职', 60: '艺术', 70: '工具', 79: '租房', 48: '音乐', 95: '借贷', 110: '社区超市', 7: '家政', 32: '生活社交', 113: '办公', 76: '汽车交易', 78: '行车辅助', 16: '射击游戏', 15: '飞行空战', 98: '记账', 114: '日程管理', 40: '搞笑', 9: '政务', 0: '打车', 22: '策略', 18: '动作类', 117: '收款', 68: '民宿短租', 3: '租车', 57: '视频教育', 34: '新闻', 35: '漫画', 31: '社交工具', 89: '餐饮店', 6: '婚庆', 50: '电台', 4: '同城服务', 14: '卡牌', 88: '菜谱', 33: '微博博客', 69: '出国', 12: '魔幻'},
         "tnews": {100: '事', 101: '文', 102: '娱', 103: '体', 104: '财', 106: '房', 107: '车', 108: '教', 109: '科', 110: '军', 112: '旅', 113: '国', 114: '股', 115: '农', 116: '游'},
         "ocnli": {'contradiction':'不','neutral':'或','entailment':'是'},
+        "bustm": {0: '否', 1: '是'},
     }
 
     mapping = map_of_mapping[task_name]
@@ -323,7 +329,7 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
     os.makedirs(os.path.join(output_dir, task_name), exist_ok=True)
     f = open(os.path.join(output_dir, task_name, "{}-{}.txt".format(k, seed)), 'w')
 
-    # TODO: 添加相应的 tasks
+    # TODO: 添加相应的 single sentence tasks
     # if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa']:
     if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa', 'eprstmt', 'iflytek', "tnews"]:
         # Single sentence tasks
@@ -366,8 +372,8 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
             f.write(text + '\n')
         print("####### generated templates #######\n")
 
-    # TODO: 在此添加 MRC, NLI 任务，转成 Chinese T5 的格式
-    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE', 'ocnli']:
+    # TODO: 在此添加 sentence pair 任务，转成 Chinese T5 的格式
+    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE', 'ocnli', 'bustm']:
         # Sentence pair tasks
         # We always put [MASK] between the two sentences
         # template = "*cls**sent-_0**<extra_id_0>**label**<extra_id_1>**+sentl_1**sep+*"
