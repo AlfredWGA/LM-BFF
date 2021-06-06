@@ -47,13 +47,16 @@ def input_example_to_string(example, sep_token):
         # Warning: very simple hack here
         return example.text_a + ' ' + sep_token + ' ' + example.text_b
 
-def input_example_to_tuple(example): 
+# NOTE: cluewsc 的每个 example 有三个 text
+def input_example_to_tuple(example, task_name=None): 
     if example.text_b is None:
         if pd.isna(example.text_a) or example.text_a is None:
             return ['']
             logger.warn("Empty input")
         else:
             return [example.text_a]
+    elif task_name == 'cluewsc':
+        return [example.text_a, example.text_b, example.text_c]
     else:
         return [example.text_a, example.text_b]
 
@@ -240,7 +243,7 @@ def tokenize_multipart_input(
 
     # Find mask token
     if prompt:
-        # TODO: 这里可以对多个 label token 进行 mask?
+        # NOTE: 这里可以获得多个 mask label token 的 position
         # mask_pos = [input_ids.index(tokenizer.mask_token_id)]
         # # Make sure that the masked position is inside the max_length
         # assert mask_pos[0] < max_length
@@ -291,7 +294,7 @@ class FewShotDataset(torch.utils.data.Dataset):
                 # else:
                 #     self.label_to_word[key] = tokenizer._convert_token_to_id(self.label_to_word[key])
                 # logger.info("Label {} to word {} ({})".format(key, tokenizer._convert_id_to_token(self.label_to_word[key]), self.label_to_word[key]))
-                # TODO: 默认所有 label word 都有多个 token
+                # NOTE: 默认所有 label word 都有多个 token
                 self.label_to_word[key] = tokenizer.convert_tokens_to_ids(list(self.label_to_word[key]))
                 logger.info("Label {} to word {} ({})".format(key, tokenizer.convert_ids_to_tokens(self.label_to_word[key]), self.label_to_word[key]))
             
@@ -579,7 +582,7 @@ class FewShotDataset(torch.utils.data.Dataset):
         if not use_demo:
             # No using demonstrations
             inputs = tokenize_multipart_input(
-                input_text_list=input_example_to_tuple(example),
+                input_text_list=input_example_to_tuple(example, self.task_name),
                 max_length=max_length,
                 tokenizer=self.tokenizer,
                 task_name=self.args.task_name,

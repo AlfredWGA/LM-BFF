@@ -74,17 +74,28 @@ class BertForPromptFinetuning(BertPreTrainedModel):
         # sequence_output.shape == [batch_size, length, hidden_dim]
         sequence_output, pooled_output = outputs[:2]
 
-        # If mask_pos.shape == [batch_size,]
-        # sequence_mask_output = sequence_output[torch.arange(sequence_output.size(0)), mask_pos]
-
-        # TODO: 在这处理多个 Mask Token
+        # NOTE: 在这处理多个 Mask Token
         # If mask_pos.shape == [batch_size, label_length], e.g. iflytek [batch_size, 2]
-        sequence_mask_output = torch.stack([sequence_output[i, index, :] for i, index in enumerate(mask_pos)])
-        # sequence_mask_output.shape == [batch_size, 2, hidden_dim]
+        if len(mask_pos.shape) > 1:
+            sequence_mask_output = torch.stack([sequence_output[i, index, :] for i, index in enumerate(mask_pos)])
+            # sequence_mask_output.shape == [batch_size, 2, hidden_dim]
+            prediction_mask_scores = self.cls(sequence_mask_output)
+            # sequence_mask_output.shape == [batch_size, 2, vocab_size]
+            # NOTE: 获得 mask 位置每个 label word 的输出值
+            logits = prediction_mask_scores[:, 0, self.label_word_list[:, 0]] * prediction_mask_scores[:, 1, self.label_word_list[:, 1]]
 
-        # Logits over vocabulary tokens
-        # sequence_mask_output.shape == [batch_size, 2, vocab_size]
-        prediction_mask_scores = self.cls(sequence_mask_output)
+        # If mask_pos.shape == [batch_size,]
+        # 如果 Mask Token 只有一个（原实现）
+        else:
+            sequence_mask_output = sequence_output[torch.arange(sequence_output.size(0)), mask_pos]
+            # Logits over vocabulary tokens
+            prediction_mask_scores = self.cls(sequence_mask_output)
+                # Return logits for each label
+            logits = []
+            for label_id in range(len(self.label_word_list)):
+                logits.append(prediction_mask_scores[:, self.label_word_list[label_id]].unsqueeze(-1))
+            logits = torch.cat(logits, -1)
+
 
         # Exit early and only return mask logits.
         if self.return_full_softmax:
@@ -92,13 +103,6 @@ class BertForPromptFinetuning(BertPreTrainedModel):
                 return torch.zeros(1, out=prediction_mask_scores.new()), prediction_mask_scores
             return prediction_mask_scores
 
-        # Return logits for each label
-        # logits = []
-        # for label_id in range(len(self.label_word_list)):
-        #     logits.append(prediction_mask_scores[:, self.label_word_list[label_id]].unsqueeze(-1))
-        # logits = torch.cat(logits, -1)
-        # TODO: 获得 mask 位置每个 label word 的输出值
-        logits = prediction_mask_scores[:, 0, self.label_word_list[:, 0]] * prediction_mask_scores[:, 1, self.label_word_list[:, 1]]
         # logits = []
         # for i, label_ids in enumerate(self.label_word_list):
             # # label_id.shape == [2,]

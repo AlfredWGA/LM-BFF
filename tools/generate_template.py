@@ -13,7 +13,7 @@ def get_text(template, input_text_tuple, label, tokenizer, mapping):
         return tokenizer.encode(text, add_special_tokens=False)
     special_token_mapping = {'cls': tokenizer.cls_token_id, 'mask': tokenizer.mask_token_id, 'sep': tokenizer.sep_token_id, 'sep+': tokenizer.sep_token_id}
     for i in range(10):
-        # TODO: 改成 Chinese T5 的形式
+        # NOTE: 改成 Chinese T5 的形式
         # special_token_mapping["<extra_id_%d>" % (i)] = tokenizer._convert_token_to_id("<extra_id_%d>" % (i))
         special_token_mapping["extra%d" % (i)] = tokenizer._convert_token_to_id("extra%d" % (i))
     template_list = template.split('*')
@@ -124,9 +124,9 @@ def generate(dataset, template, model, tokenizer, target_number, mapping, beam, 
 
     # Maximum generate content length
     max_length = 20
-
-    start_mask = tokenizer._convert_token_to_id('<extra_id_0>')
-    # start_mask = tokenizer._convert_token_to_id('extra0')
+    # NOTE:
+    # start_mask = tokenizer._convert_token_to_id('<extra_id_0>')
+    start_mask = tokenizer._convert_token_to_id('extra0')
     ori_decoder_input_ids = torch.zeros((input_ids.size(0), max_length)).long()
     ori_decoder_input_ids[..., 0] = model.config.decoder_start_token_id
 
@@ -168,8 +168,9 @@ def generate(dataset, template, model, tokenizer, target_number, mapping, beam, 
             
             for word_id in ids:
                 output_id = item['output_id']
-
-                if word_id == start_mask - output_id or word_id == tokenizer._convert_token_to_id('</s>'):
+                # NOTE
+                # if word_id == start_mask - output_id or word_id == tokenizer._convert_token_to_id('</s>'):
+                if word_id == start_mask - output_id or word_id == tokenizer._convert_token_to_id('[SEP]'):
                     # Finish one part
                     if length_limit is not None and item['last_length'] < length_limit[output_id - 1]:
                         check = False
@@ -279,6 +280,24 @@ def load_dataset(task, data_dir):
         dataset = []
         for line in lines:
             dataset.append({'label': line[3], 'text': [line[1], line[2]]})
+    elif task in ["csldcp"]:
+        lines = pd.read_csv(os.path.join(data_dir, 'train.csv'), header=None).values.tolist()
+        dataset = []
+        for line in lines:
+            dataset.append({'label': line[1], 'text': [line[0]]})
+    elif task in ["csl"]:
+        lines = pd.read_csv(os.path.join(data_dir, 'train.csv'), header=None).values.tolist()
+        dataset = []
+        for line in lines:
+            dataset.append({'label': line[3], 'text': [line[1], ','.join(eval(line[2]))]})
+    elif task in ["cluewsc"]:
+        lines = pd.read_csv(os.path.join(data_dir, 'train.csv'), header=None).values.tolist()
+        dataset = []
+        for line in lines:
+            span_dict = eval(line[0])
+            span1, span2 = span_dict['span1_text'], span_dict['span2_text']
+            dataset.append({'label': line[2], 'text': [line[-1], span1, span2]})
+
     else:
         lines = pd.read_csv(os.path.join(data_dir, 'train.csv')).values.tolist()
         dataset = []
@@ -321,6 +340,9 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
         "tnews":{100:'故事',101:'文化',102:'娱乐',103:'体育',104:'财经',106:'房产',107:'汽车',108:'教育',109:'科技',110:'军事',112:'旅游',113:'国际',114:'股市',115:'农业',116:'游戏'},
         "ocnli": {'contradiction':'不','neutral':'或','entailment':'是'},
         "bustm": {0: '否', 1: '是'},
+        "csldcp": {'材料科学与工程':'材料','作物学':'作物','口腔医学':'口腔','药学':'药学','教育学':'教育','水利工程':'水利','理论经济学':'理经','食品科学与工程':'食品','畜牧学/兽医学':'兽医','体育学':'体育','核科学与技术':'核能','力学':'力学','园艺学':'园艺','水产':'水产','法学':'法学','地质学/地质资源与地质工程':'地质','石油与天然气工程':'能源','农林经济管理':'农林','信息与通信工程':'通信','图书馆、情报与档案管理':'情报','政治学':'政治','电气工程':'电气','海洋科学':'海洋','民族学':'民族','航空宇航科学与技术':'航空','化学/化学工程与技术':'化工','哲学':'哲学','公共卫生与预防医学':'卫生','艺术学':'艺术','农业工程':'农工','船舶与海洋工程':'船舶','计算机科学与技术':'计科','冶金工程':'冶金','交通运输工程':'交通','动力工程及工程热物理':'动力','纺织科学与工程':'纺织','建筑学':'建筑','环境科学与工程':'环境','公共管理':'公管','数学':'数学','物理学':'物理','林学/林业工程':'林业','心理学':'心理','历史学':'历史','工商管理':'工商','应用经济学':'应经','中医学/中药学':'中医','天文学':'天文','机械工程':'机械','土木工程':'土木','光学工程':'光学','地理学':'地理','农业资源利用':'农资','生物学/生物科学与工程':'生物','兵器科学与技术':'兵器','矿业工程':'矿业','大气科学':'大气','基础医学/临床医学':'医学','电子科学与技术':'电子','测绘科学与技术':'测绘','控制科学与工程':'控制','军事学':'军事','中国语言文学':'语言','新闻传播学':'新闻','社会学':'社会','地球物理学':'地球','植物保护':'植物'},
+        "csl": {0:'否',1:'是'},
+        "cluewsc": {False:'否',True:'是'},
     }
 
     mapping = map_of_mapping[task_name]
@@ -333,12 +355,14 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
 
     # TODO: 添加相应的 single sentence tasks
     # if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa']:
-    if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa', 'eprstmt', 'iflytek', "tnews"]:
+    if task_name in ['SST-2', 'sst-5', 'mr', 'cr', 'subj', 'trec', 'CoLA', 'mpqa', 'eprstmt', 'iflytek', "tnews", "csldcp", 'cluewsc']:
         # Single sentence tasks
         # We take two kinds of templates: put [MASK] at the beginning or the end
-        # TODO: 转成 Chinese T5 的格式
+        # NOTE: 转成 Chinese T5 的格式
         # template = "*cls**sentu_0**<extra_id_0>**label**<extra_id_1>**sep+*"
         template = "*cls**sentu_0**extra0**label**extra1**sep+*"
+        if task_name == 'cluewsc':
+            template = "*cls**sentu_0**extra0**sent_1**extra1**sent_2**extra2**label**sep+*"
         generate_text = generate(dataset, template, model, tokenizer, target_number=2, mapping=mapping, beam=beam, label=None, truncate='head')[:beam//2]
 
         print("####### generated templates #######")
@@ -348,17 +372,28 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
             # text = text.replace('<extra_id_1>', '*mask*')
             # text = text.replace('<extra_id_2>', '*sep+*')
             # text = text.replace('</s>', '*sep+*')
-            text = text.replace('extra0', '*cls**sent_0*')
-            text = text.replace('extra1', '*mask*')
-            text = text.replace('extra2', '*sep+*')
-            text = text.replace('[SEP]', '*sep+*')
-            text = text.replace('▁', '_')
+            if task_name == 'cluewsc':
+                text = text.replace('extra0', '*cls**sent_0*')
+                text = text.replace('extra1', '*sent_1*')
+                text = text.replace('extra2', '*sent_2*')
+                text = text.replace('extra3', '*mask*')
+                text = text.replace('[SEP]', '*sep+*')
+                text = text.replace('▁', '_')
+            else:
+                text = text.replace('extra0', '*cls**sent_0*')
+                text = text.replace('extra1', '*mask*')
+                text = text.replace('extra2', '*sep+*')
+                text = text.replace('[SEP]', '*sep+*')
+                text = text.replace('▁', '_')
             print(text)
             f.write(text + '\n')
         print("####### generated templates #######\n")
 
         # template = "*cls*.*<extra_id_0>**label**<extra_id_1>**+sentu_0**sep+*"
         template = "*cls*.*extra0**label**extra1**+sentu_0**sep+*"
+        if task_name == 'cluewsc':
+            template = "*cls*.*extra0**label**extra1**sent_0**extra2**sent_1**extra3**sent_2**sep+*"
+            # template = "*cls**sentu_0**extra0**sent_1**extra1**sent_2**extra2**label**sep+*"
         generate_text = generate(dataset, template, model, tokenizer, target_number=2, mapping=mapping, beam=beam, label=None, truncate='tail')[:beam//2]
         print("####### generated templates #######")
         for text in generate_text:
@@ -367,17 +402,26 @@ def search_template(model, tokenizer, task_name, k, seed, beam, output_dir, data
             # text = text.replace('<extra_id_1>', '*mask*')
             # text = text.replace('<extra_id_2>', '*+sent_0**sep+*')
             # text = text.replace('</s>', '*+sent_0**sep+*')
-            text = text.replace('extra0', '*cls*')
-            text = text.replace('extra1', '*mask*')
-            text = text.replace('extra2', '*+sent_0**sep+*')
-            text = text.replace('[SEP]', '*+sent_0**sep+*')
-            text = text.replace('▁', '_')
+            if task_name == 'cluewsc':
+                text = text.replace('extra0', '*cls*')
+                text = text.replace('extra1', '*mask*')
+                text = text.replace('extra2', '*sent_0*')
+                text = text.replace('extra3', '*sent_1*')
+                text = text.replace('extra4', '*sent_2*')
+                text = text.replace('[SEP]', '*sep+*')
+                text = text.replace('▁', '_')
+            else:
+                text = text.replace('extra0', '*cls*')
+                text = text.replace('extra1', '*mask*')
+                text = text.replace('extra2', '*+sent_0**sep+*')
+                text = text.replace('[SEP]', '*+sent_0**sep+*')
+                text = text.replace('▁', '_')
             print(text)
             f.write(text + '\n')
         print("####### generated templates #######\n")
 
     # TODO: 在此添加 sentence pair 任务，转成 Chinese T5 的格式
-    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE', 'ocnli', 'bustm']:
+    elif task_name in ['MRPC', 'QQP', 'STS-B', 'MNLI', 'SNLI', 'QNLI', 'RTE', 'ocnli', 'bustm', 'csl']:
         # Sentence pair tasks
         # We always put [MASK] between the two sentences
         # template = "*cls**sent-_0**<extra_id_0>**label**<extra_id_1>**+sentl_1**sep+*"
@@ -417,10 +461,10 @@ def main():
 
     model = T5ForConditionalGeneration.from_pretrained(args.t5_model)
     # tokenizer = T5Tokenizer.from_pretrained(args.t5_model)
+    # tokenizer.sep_token = '</s>'
     # 使用中文 T5 模型
     from transformers import BertTokenizer
     tokenizer = BertTokenizer.from_pretrained(args.t5_model)
-    tokenizer.sep_token = '</s>'
 
     model = model.cuda()
     model.eval()

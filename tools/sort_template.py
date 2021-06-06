@@ -123,7 +123,7 @@ def main():
             args.key = 'mpqa_dev_eval_acc'
             args.test_key = 'mpqa_test_eval_acc'
             print_name = condition['task_name']
-        # TODO: 
+        # TODO: 添加 CLUE 任务
         elif condition['task_name'] == 'eprstmt':
             args.key = 'eprstmt_dev_eval_acc'
             args.test_key = 'eprstmt_test_eval_acc'
@@ -143,6 +143,18 @@ def main():
         elif condition['task_name'] == 'bustm':
             args.key = 'bustm_dev_eval_acc'
             args.test_key = 'bustm_test_eval_acc'
+            print_name = condition['task_name']
+        elif condition['task_name'] == 'csldcp':
+            args.key = 'csldcp_dev_eval_acc'
+            args.test_key = 'csldcp_test_eval_acc'
+            print_name = condition['task_name']
+        elif condition['task_name'] == 'csl':
+            args.key = 'csl_dev_eval_acc'
+            args.test_key = 'csl_test_eval_acc'
+            print_name = condition['task_name']
+        elif condition['task_name'] == 'cluewsc':
+            args.key = 'cluewsc_dev_eval_acc'
+            args.test_key = 'cluewsc_test_eval_acc'
             print_name = condition['task_name']
         else:
             raise NotImplementedError
@@ -176,7 +188,8 @@ def main():
         print("Seed %d has %d results" % (seed, len(seed_result[seed])))
 
         # Load all templates
-        with open(os.path.join(args.template_dir, print_name, "{}-{}.txt".format(args.k, seed))) as f:
+        # NOTE: 只加载 clean 的模板
+        with open(os.path.join(args.template_dir, print_name, "{}-{}-clean.txt".format(args.k, seed))) as f:
             templates = []
             for line in f:
                 templates.append(line.strip())

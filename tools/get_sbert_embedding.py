@@ -77,7 +77,7 @@ def load_datasets(data_dir, task, do_test=False):
         if task in ['mr', 'sst-5', 'subj', 'trec', 'cr', 'mpqa']:
             filename = os.path.join(data_dir, f"{split}.csv")
             dataset[split] = pd.read_csv(filename, header=None).values.tolist()
-        elif task in ["eprstmt", "iflytek", "tnews", "ocnli", "bustm"]:   # TODO: 
+        elif task in ["eprstmt", "iflytek", "tnews", "ocnli", "bustm", "csl"]:   # TODO: 
             filename = os.path.join(data_dir, f"{split}.csv")
             dataset[split] = pd.read_csv(filename, header=None).values.tolist()
         else:
